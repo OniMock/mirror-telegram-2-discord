@@ -18,12 +18,13 @@ async def main():
     telegram_service = TelegramService(int(telegram_api_id), telegram_api_hash, SESSION_NAME)
     user_interface = UserInterface()
     await telegram_service.authenticate()
-    groups = await telegram_service.list_groups()
+
     while True:
         user_interface.display_menu()
         choice = user_interface.get_user_choice()
 
         if choice == '1':
+            groups = await telegram_service.list_groups()
             user_interface.display_groups(groups)
             selected_index = user_interface.get_group_selection()
 
@@ -33,8 +34,13 @@ async def main():
                 await telegram_service.mirror_group_messages(selected_group.id, discord_service)
             else:
                 print("Invalid selection, please try again.")
-
         elif choice == '2':
+            group_at = user_interface.get_group_by_at()
+            group_id = await telegram_service.get_group_by_at(group_at)
+            print(f"Starting mirroring of group with username at(@): {group_id.channel_id}")
+            await telegram_service.mirror_group_messages(int(group_id.channel_id), discord_service)
+
+        elif choice == '3':
             group_id = user_interface.get_group_id()
             print(f"Starting mirroring of group with ID: {group_id}")
             await telegram_service.mirror_group_messages(int(group_id), discord_service)
