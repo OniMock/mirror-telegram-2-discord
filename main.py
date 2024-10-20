@@ -24,7 +24,9 @@ async def main():
         choice = user_interface.get_user_choice()
 
         if choice == '1':
-            groups = await telegram_service.list_groups()
+            task = asyncio.create_task(telegram_service.list_groups())
+            await show_loading_indicator(task)
+            groups = await task
             user_interface.display_groups(groups)
             selected_index = user_interface.get_group_selection()
 
@@ -51,6 +53,16 @@ async def main():
 
         else:
             print("Invalid choice, please try again.")
+
+
+async def show_loading_indicator(task):
+    loading_symbols = ['▢', '▣', '▤', '▥']
+    idx = 0
+    while not task.done():
+        print(f"\rLoading groups... {loading_symbols[idx % len(loading_symbols)]}", end="")
+        idx += 1
+        await asyncio.sleep(0.2)
+    print("\r" + " " * 30, end="")
 
 if __name__ == "__main__":
     asyncio.run(main())
