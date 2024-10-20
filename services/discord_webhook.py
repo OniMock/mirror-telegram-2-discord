@@ -4,13 +4,13 @@ class DiscordWebhook:
     def __init__(self, webhook_url):
         self.webhook_url = webhook_url
 
-    async def send_message2(self, payload, image):
+    async def send_message(self, payload, image):
         async with aiohttp.ClientSession() as session:
             check = await self.send_avatar(image, session)
-            await self.send_message(payload, session)
+            await self._send_message(payload, session)
             return check
 
-    async def send_message(self, payload, session):
+    async def _send_message(self, payload, session):
         try:
             async with session.post(self.webhook_url, json=payload) as response:
                 if response.status in [204, 200]:
