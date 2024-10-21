@@ -12,6 +12,7 @@ class TelegramService:
     def __init__(self, api_id, api_hash, session_name):
         self.save_folder = "profile_files/"
         self.client = TelegramClient(session_name, api_id, api_hash)
+        self.last_user = None
 
     async def authenticate(self):
         await self.client.connect()
@@ -93,7 +94,7 @@ class TelegramService:
         form_data = aiohttp.FormData()
 
         user_image_data_url = await self._get_user_image_data(user)
-        form_data_message = Content(user_name, user_image_data_url)
+        form_data_message = Content(user_name)
 
         if event.message.media:
             document_path = await self._get_user_document(event)
@@ -131,6 +132,11 @@ class TelegramService:
                 files['file'] = open(document_path["path"], 'rb')
         if files:
             form_data.add_field('files', files['file'], filename=document_path["path"].split('/')[-1])
+        if user_image_data_url:
+            form_data_message.set_avatar(user_image_data_url)
+        else:
+            form_data_message.set_avatar_url("https://raw.githubusercontent.com/OniMock/.github/refs/heads/main/.resources/logo/fav_icon_logo.png")
+
         await self._send_to_discord(form_data_message, form_data, discord_service)
 
     async def _get_user_image_data(self, user):
@@ -146,7 +152,7 @@ class TelegramService:
                 return img
 
     @staticmethod
-    async def _send_to_discord(form_data_message, form_data, discord_service):
+    async def _send_to_discord(form_data_message: Content, form_data, discord_service):
         try:
             await discord_service.send_message(form_data_message, form_data)
         except Exception as e:

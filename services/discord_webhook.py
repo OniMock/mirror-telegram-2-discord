@@ -2,16 +2,19 @@ import json
 
 import aiohttp
 
+from models.content import Content
+
+
 class DiscordWebhook:
     def __init__(self, webhook_url):
         self.webhook_url = webhook_url
 
-    async def send_message(self, form_data_message, form_data):
+    async def send_message(self, form_data_message: Content, form_data):
         async with aiohttp.ClientSession() as session:
             form_data.add_field('payload_json', json.dumps(form_data_message.to_dict()))
-            check = await self.send_avatar(form_data_message.avatar_to_dict(), session)
+            if form_data_message.avatar:
+                await self.send_avatar(form_data_message.avatar_to_dict(), session)
             await self._send_message(form_data, session)
-            return check
 
     async def _send_message(self, form_data, session):
         try:

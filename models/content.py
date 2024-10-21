@@ -1,13 +1,20 @@
 class Content:
-    def __init__(self, username, avatar):
+    def __init__(self, username):
         self.username = username
-        self.avatar = avatar
+        self.avatar = None
+        self.avatar_url = ""
         self.content = ""
         self.embeds = []
         self.current_embed = None
 
     def set_content(self, content):
         self.content = content
+
+    def set_avatar(self, avatar_base64):
+        self.avatar = avatar_base64
+
+    def set_avatar_url(self, avatar_url):
+        self.avatar_url = avatar_url
 
     def add_embed(self, description, title=None):
         embed = {
@@ -21,7 +28,7 @@ class Content:
             "color": None
         }
         self.embeds.append(embed)
-        self.current_embed = embed  # Define o embed atual
+        self.current_embed = embed
         return embed
 
     def set_author(self, name, url=None, icon_url=None):
@@ -48,12 +55,18 @@ class Content:
         if self.current_embed is not None:
             self.current_embed["color"] = color
 
-    def to_dict(self):
-        return {
+    def to_dict(self) -> dict:
+        data = {
             "username": self.username,
             "content": self.content,
             "embeds": self.embeds
         }
+
+        if self.avatar_url:
+            data["avatar_url"] = self.avatar_url
+
+        return data
+
     def avatar_to_dict(self):
         return {
             "avatar": self.avatar
