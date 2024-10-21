@@ -49,13 +49,13 @@ async def main():
 
 
 async def show_loading_indicator(task):
-    loading_symbols = ['.     ◐', '..    ◓', '...   ◑', '....  ◒', '...   ◑', '..    ◓']
+    loading_symbols = ['.     ◐', '..    ◓', '...   ◑', '....  ◒', '...   ◐', '..    ◓', '.     ◑', '      ◒' ]
     idx = 0
     while not task.done():
         print(f"\rLoading groups{loading_symbols[idx % len(loading_symbols)]}", end="")
         idx += 1
         await asyncio.sleep(0.3)
-    print("\r" + "", end="")
+    print("\r" + "\n", end="\n")
 
 if __name__ == "__main__":
     asyncio.run(main())
