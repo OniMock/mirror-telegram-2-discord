@@ -83,7 +83,7 @@ class TelegramService:
         media_path = os.path.join(self.save_folder, media_filename)
 
         await self.client.download_media(event.message, file=media_path)
-        return {"path": media_path, "extension": extension}
+        return {"path": media_path, "extension": extension, "mime_type": mime_type}
 
     async def _handle_new_message(self, event, discord_service):
         message_text = event.message.message or None
@@ -107,6 +107,8 @@ class TelegramService:
                         original_user = await original_message.get_sender()
                         original_user_name = get_username(original_user)
                         original_message_text = original_message.message
+                        if original_message.file:
+                            original_message_text += f"\n*{original_message.file.mime_type}*"
                         form_data_message.set_content(message_text)
                         form_data_message.add_embed("*reply*:")
                         form_data_message.add_field(original_user_name, original_message_text, False)
@@ -118,6 +120,8 @@ class TelegramService:
                         original_user = await original_message.get_sender()
                         original_user_name = get_username(original_user)
                         original_message_text = original_message.message
+                        if original_message.file:
+                            original_message_text += f"\n*{original_message.file.mime_type}*"
                         form_data_message.set_content(message_text)
                         form_data_message.add_embed("*reply*:")
                         form_data_message.add_field(original_user_name, original_message_text, False)
