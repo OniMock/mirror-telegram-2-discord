@@ -29,7 +29,6 @@ async def main():
             groups = await task
             user_interface.display_groups(groups)
             selected_index = user_interface.get_group_selection()
-
             if 0 <= selected_index < len(groups):
                 selected_group = groups[selected_index]
                 print(f"Starting mirroring of group: {selected_group.name} (ID: {selected_group.id})")
@@ -37,20 +36,14 @@ async def main():
             else:
                 print("Invalid selection, please try again.")
         elif choice == '2':
-            group_at = user_interface.get_group_by_at()
-            group_id = await telegram_service.get_group_by_at(group_at)
-            print(f"Starting mirroring of group with username at(@): {group_id.channel_id}")
-            await telegram_service.mirror_group_messages(int(group_id.channel_id), discord_service)
-
-        elif choice == '3':
-            group_id = user_interface.get_group_id()
-            print(f"Starting mirroring of group with ID: {group_id}")
-            await telegram_service.mirror_group_messages(int(group_id), discord_service)
-
+            group_choice = user_interface.get_group()
+            group = await telegram_service.get_entity_group(group_choice)
+            group_username = group.username if group.username else "Without username"
+            print(f"Starting mirroring of group with username at(@)\nName:{group.title}\nUserName:{group_username}\nId:{group.id}")
+            await telegram_service.mirror_group_messages(int(group.id), discord_service)
         elif choice == '0':
             user_interface.exit()
             break
-
         else:
             print("Invalid choice, please try again.")
 
