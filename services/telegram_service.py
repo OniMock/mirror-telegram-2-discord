@@ -1,6 +1,5 @@
 import mimetypes
 import os
-
 import aiohttp
 from telethon import TelegramClient, events
 from telethon.tl.types import User, MessageMediaPhoto, MessageMediaDocument
@@ -39,12 +38,18 @@ class TelegramService:
 
         return groups
 
-    async def get_group_by_at(self, username):
+    async def get_entity_group(self, group):
         try:
-            return await self.client.get_input_entity(username)
+            if group.isdigit():
+                group = int(group)
+            elif group.startswith('@'):
+                group = group[1:]
+            group_entity = await self.client.get_entity(group)
+            return group_entity
         except Exception as e:
-            print(f"Error fetching group by username: {e}")
+            print(f"Error fetching entity group: {e}")
             return None
+
 
     async def mirror_group_messages(self, group_id, discord_service):
         os.makedirs(self.save_folder, exist_ok=True)
