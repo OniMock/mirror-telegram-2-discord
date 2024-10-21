@@ -83,7 +83,7 @@ class TelegramService:
         media_path = os.path.join(self.save_folder, media_filename)
 
         await self.client.download_media(event.message, file=media_path)
-        return {"path": media_path, "extension": extension, "mime_type": mime_type}
+        return media_path
 
     async def _handle_new_message(self, event, discord_service):
         message_text = event.message.message or None
@@ -113,7 +113,7 @@ class TelegramService:
                         form_data_message.add_embed("*reply*:")
                         form_data_message.add_field(original_user_name, original_message_text, False)
                         form_data_message.set_footer("Powered by Onimock")
-                    files['file'] = open(document_path["path"], 'rb')
+                    files['file'] = open(document_path, 'rb')
                 else:
                     original_message = await event.get_reply_message()
                     if original_message and original_message.from_id and original_message.from_id.user_id:
@@ -129,27 +129,35 @@ class TelegramService:
             else:
                 form_data_message.set_content(message_text)
                 if document_path:
-                    files['file'] = open(document_path["path"], 'rb')
+                    files['file'] = open(document_path, 'rb')
         elif event.message.media:
             form_data_message.set_content(message_text)
             if document_path:
-                files['file'] = open(document_path["path"], 'rb')
+                files['file'] = open(document_path, 'rb')
         if files:
-            form_data.add_field('files', files['file'], filename=document_path["path"].split('/')[-1])
+            form_data.add_field('files', files['file'], filename=document_path.split('/')[-1])
         self.update_webhook_avatar(user_name,user_image_data_url, form_data_message)
-        await self._send_to_discord(form_data_message, form_data, discord_service)
+        try:
+            await self._send_to_discord(form_data_message, form_data, discord_service)
+        finally:
+            if 'file' in files:
+                files['file'].close()
+                self._delete_file(document_path)
 
     async def _get_user_image_data(self, user):
         photo_path = os.path.join(self.save_folder, f"img_{create_hash()}.jpg")
         await self.client.download_profile_photo(user, file=photo_path)
         img = await convert_image_to_base64(photo_path)
-        if os.path.exists(photo_path):
+        self._delete_file(photo_path)
+        return img
+
+    @staticmethod
+    def _delete_file(file_path):
+        if os.path.exists(file_path):
             try:
-                os.remove(photo_path)
+                os.remove(file_path)
             except Exception as e:
                 print(f"Error to delete profile image: {e}")
-            finally:
-                return img
 
     def update_webhook_avatar(self, user_name, user_image_data_url, form_data_message):
         if self.last_user != user_name:
