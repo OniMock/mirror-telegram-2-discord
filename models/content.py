@@ -2,7 +2,7 @@ class Content:
     def __init__(self, username):
         self.username = username
         self.avatar = None
-        self.avatar_url = ""
+        self.avatar_url = None
         self.content = ""
         self.embeds = []
         self.current_embed = None

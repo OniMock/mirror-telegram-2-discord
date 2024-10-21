@@ -132,11 +132,7 @@ class TelegramService:
                 files['file'] = open(document_path["path"], 'rb')
         if files:
             form_data.add_field('files', files['file'], filename=document_path["path"].split('/')[-1])
-        if user_image_data_url:
-            form_data_message.set_avatar(user_image_data_url)
-        else:
-            form_data_message.set_avatar_url("https://raw.githubusercontent.com/OniMock/.github/refs/heads/main/.resources/logo/fav_icon_logo.png")
-
+        self.update_webhook_avatar(user_name,user_image_data_url, form_data_message)
         await self._send_to_discord(form_data_message, form_data, discord_service)
 
     async def _get_user_image_data(self, user):
@@ -150,6 +146,15 @@ class TelegramService:
                 print(f"Error to delete profile image: {e}")
             finally:
                 return img
+
+    def update_webhook_avatar(self, user_name, user_image_data_url, form_data_message):
+        if self.last_user != user_name:
+            if user_image_data_url:
+                form_data_message.set_avatar(user_image_data_url)
+            else:
+                form_data_message.set_avatar_url(
+                    "https://raw.githubusercontent.com/OniMock/.github/refs/heads/main/.resources/logo/fav_icon_logo.png")
+        self.last_user = user_name
 
     @staticmethod
     async def _send_to_discord(form_data_message: Content, form_data, discord_service):
