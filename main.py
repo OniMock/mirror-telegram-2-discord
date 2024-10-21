@@ -49,7 +49,7 @@ async def main():
 
 
 async def show_loading_indicator(task):
-    loading_symbols = ['.     ◷', '..    ◶', '...   ◵', '....  ◴']
+    loading_symbols = ['.     ◐', '..    ◓', '...   ◑', '....  ◒', '...   ◑', '..    ◓']
     idx = 0
     while not task.done():
         print(f"\rLoading groups{loading_symbols[idx % len(loading_symbols)]}", end="")
