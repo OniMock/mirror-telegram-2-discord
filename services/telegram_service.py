@@ -26,14 +26,24 @@ class TelegramService:
 
     async def list_groups(self):
         groups = []
+        seen_ids = set()
         offset_id = 0
-        max_iterations = 3
+        max_iterations = 6
+
+        async for dialog in self.client.iter_dialogs():
+            if dialog.is_channel:
+                groups.append(dialog)
+                seen_ids.add(dialog.id)
 
         for _ in range(max_iterations):
             dialogs = await self.client.get_dialogs(offset_id=offset_id, limit=100)
             if not dialogs:
                 break
-            groups.extend(dialog for dialog in dialogs if dialog.is_group)
+
+            for dialog in dialogs:
+                if dialog.is_group and dialog.id not in seen_ids:
+                    groups.append(dialog)
+                    seen_ids.add(dialog.id)
             offset_id = dialogs[-1].message.id if dialogs[-1].message else None
 
         return groups
