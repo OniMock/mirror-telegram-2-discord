@@ -4,6 +4,7 @@ import aiohttp
 from telethon import TelegramClient, events
 from telethon.tl.types import User, MessageMediaPhoto, MessageMediaDocument, Channel, MessageMediaPoll
 from models.content import Content
+from models.embed import Embed
 from models.user import get_username
 from utils.image_to_base64 import convert_image_to_base64
 from utils.hash import create_hash
@@ -93,6 +94,7 @@ class TelegramService:
         document_path = None
         files = {}
         form_data = aiohttp.FormData()
+        embed = Embed('*reply*:')
 
         user_image_data_url = await self._get_user_image_data(user)
         form_data_message = Content(user_name)
@@ -104,37 +106,14 @@ class TelegramService:
             if message_text:
                 form_data_message.set_content(message_text)
             if event.message.reply_to_msg_id:
-                if document_path:
-                    original_message = await event.get_reply_message()
-                    if original_message and original_message.from_id and original_message.from_id.user_id:
-                        original_user = await original_message.get_sender()
-                        original_user_name = get_username(original_user)
-                        original_message_text = original_message.message
-                        if original_message.file:
-                            original_message_text += f"\n*{original_message.file.mime_type}*"
-                        if original_message_text:
-                            form_data_message.add_embed("*reply*:")
-                            form_data_message.add_field(original_user_name, original_message_text, False)
-                            form_data_message.set_footer("Powered by Onimock")
-                    files['file'] = open(document_path, 'rb')
-                else:
-                    original_message = await event.get_reply_message()
-                    if original_message and original_message.from_id and original_message.from_id.user_id:
-                        original_user = await original_message.get_sender()
-                        original_user_name = get_username(original_user)
-                        original_message_text = original_message.message
-                        if original_message.file:
-                            original_message_text += f"\n*{original_message.file.mime_type}*"
-                        if original_message_text:
-                            form_data_message.add_embed("*reply*:")
-                            form_data_message.add_field(original_user_name, original_message_text, False)
-                            form_data_message.set_footer("Powered by Onimock")
-            else:
-                if document_path:
-                    files['file'] = open(document_path, 'rb')
-        elif event.message.media:
-            if document_path:
+                await self._handle_reply(event, form_data_message, embed, document_path, files)
+            elif document_path:
                 files['file'] = open(document_path, 'rb')
+        elif event.message.media and document_path:
+            try:
+                files['file'] = open(document_path, 'rb')
+            except Exception as e:
+                print(f"{e} - {event}")
         if files:
             form_data.add_field('files', files['file'], filename=document_path.split('/')[-1])
         self.update_webhook_avatar(user_name,user_image_data_url, form_data_message)
@@ -175,3 +154,19 @@ class TelegramService:
             await discord_service.send_message(form_data_message, form_data)
         except Exception as e:
             print(f"Error sending message to discord: {e}")
+
+    @staticmethod
+    async def _handle_reply(event, form_data_message, embed, document_path, files):
+        original_message = await event.get_reply_message()
+        if original_message and original_message.from_id and original_message.from_id.user_id:
+            original_user = await original_message.get_sender()
+            original_user_name = get_username(original_user)
+            original_message_text = original_message.message
+            if original_message.file:
+                original_message_text += f"\n*{original_message.file.mime_type}*"
+            if original_message_text:
+                embed.add_field(original_user_name, original_message_text, False)
+                embed.set_footer("Powered by Onimock")
+                form_data_message.add_embed(embed)
+            if document_path:
+                files['file'] = open(document_path, 'rb')
