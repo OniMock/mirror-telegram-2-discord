@@ -58,10 +58,10 @@ class Content:
     def to_dict(self) -> dict:
         data = {
             "username": self.username,
-            "content": self.content,
-            "embeds": self.embeds
+            "content": self.content
         }
-
+        if self.embeds:
+            data["embeds"] =  self.embeds
         if self.avatar_url:
             data["avatar_url"] = self.avatar_url
 
