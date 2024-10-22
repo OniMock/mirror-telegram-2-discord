@@ -1,10 +1,13 @@
 def get_username(user):
-    if user.first_name:
-        user_name = user.first_name
-        if user.last_name:
-            user_name += f" {user.last_name}"
-    elif user.username:
-        user_name = user.username
+    first_name = getattr(user, 'first_name', None)
+    last_name = getattr(user, 'last_name', None)
+    title = getattr(user, 'title', None)
+    username = getattr(user, 'username', 'Unknown User')
+    user_name = f"{first_name or ''} {last_name or ''}".strip()
+
+    if user_name:
+        return user_name
+    elif title:
+        return title
     else:
-        user_name = "Unknown User"
-    return user_name
+        return username
