@@ -2,7 +2,7 @@ import mimetypes
 import os
 import aiohttp
 from telethon import TelegramClient, events
-from telethon.tl.types import User, MessageMediaPhoto, MessageMediaDocument
+from telethon.tl.types import User, MessageMediaPhoto, MessageMediaDocument, Channel, MessageMediaPoll
 from models.content import Content
 from models.user import get_username
 from utils.image_to_base64 import convert_image_to_base64
@@ -67,7 +67,8 @@ class TelegramService:
         async with self.client:
             @self.client.on(events.NewMessage(chats=group_id))
             async def handler(event):
-                await self._handle_new_message(event, discord_service)
+                if not isinstance(event.message.media, MessageMediaPoll):
+                    await self._handle_new_message(event, discord_service)
 
             print(f"Mirroring messages from group {group_id}. Press Ctrl+C to stop.")
             await self.client.run_until_disconnected()
@@ -99,7 +100,9 @@ class TelegramService:
         if event.message.media:
             document_path = await self._get_user_document(event)
 
-        if message_text and isinstance(user, User):
+        if message_text and (isinstance(user, User) or isinstance(user, Channel) ):
+            if message_text:
+                form_data_message.set_content(message_text)
             if event.message.reply_to_msg_id:
                 if document_path:
                     original_message = await event.get_reply_message()
@@ -109,10 +112,10 @@ class TelegramService:
                         original_message_text = original_message.message
                         if original_message.file:
                             original_message_text += f"\n*{original_message.file.mime_type}*"
-                        form_data_message.set_content(message_text)
-                        form_data_message.add_embed("*reply*:")
-                        form_data_message.add_field(original_user_name, original_message_text, False)
-                        form_data_message.set_footer("Powered by Onimock")
+                        if original_message_text:
+                            form_data_message.add_embed("*reply*:")
+                            form_data_message.add_field(original_user_name, original_message_text, False)
+                            form_data_message.set_footer("Powered by Onimock")
                     files['file'] = open(document_path, 'rb')
                 else:
                     original_message = await event.get_reply_message()
@@ -122,16 +125,14 @@ class TelegramService:
                         original_message_text = original_message.message
                         if original_message.file:
                             original_message_text += f"\n*{original_message.file.mime_type}*"
-                        form_data_message.set_content(message_text)
-                        form_data_message.add_embed("*reply*:")
-                        form_data_message.add_field(original_user_name, original_message_text, False)
-                        form_data_message.set_footer("Powered by Onimock")
+                        if original_message_text:
+                            form_data_message.add_embed("*reply*:")
+                            form_data_message.add_field(original_user_name, original_message_text, False)
+                            form_data_message.set_footer("Powered by Onimock")
             else:
-                form_data_message.set_content(message_text)
                 if document_path:
                     files['file'] = open(document_path, 'rb')
         elif event.message.media:
-            form_data_message.set_content(message_text)
             if document_path:
                 files['file'] = open(document_path, 'rb')
         if files:
