@@ -154,17 +154,17 @@ class TelegramService:
             logger.error(f"Error sending message to discord: {e} - Event:\n{event}")
 
     async def _handle_reply(self, form_data_message, embed, event):
-        original_message = await event.get_reply_message()
-        if original_message and original_message.from_id and original_message.from_id.user_id:
-            original_user = await original_message.get_sender()
-            original_user_name = get_username(original_user)
-            original_message_text = original_message.message
+        reply_message = await event.get_reply_message()
+        if reply_message and reply_message.from_id and reply_message.from_id.user_id:
+            reply_user = await reply_message.get_sender() or event.chat
+            reply_user_name = get_username(reply_user)
+            reply_message_text = reply_message.message
 
-            if original_message.file:
-                original_message_text += f"\n*{original_message.file.mime_type}*"
+            if reply_message.file:
+                reply_message_text += f"\n*{reply_message.file.mime_type}*"
 
-            if original_message_text:
-                embed.add_field(original_user_name, original_message_text, False)
+            if reply_message_text:
+                embed.add_field(reply_user_name, reply_message_text, False)
                 embed.set_footer("Powered by Onimock")
                 form_data_message.add_embed(embed)
 
