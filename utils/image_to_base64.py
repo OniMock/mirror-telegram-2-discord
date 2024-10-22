@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 async def convert_image_to_base64(image_path, max_size=(75, 75)):
     if not os.path.exists(image_path):
         logging.info(f"Image {image_path} not found.")

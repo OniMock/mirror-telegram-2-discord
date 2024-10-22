@@ -1,5 +1,6 @@
 import os
 import logging
+from config import *
 
 from utils.hash import create_hash
 
@@ -7,9 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class FileManager:
-    def __init__(self, base_folder):
-        self.base_folder = base_folder
-        os.makedirs(base_folder, exist_ok=True)
+    def __init__(self):
+        self.base_folder = SAVE_FOLDER
+        os.makedirs(SAVE_FOLDER, exist_ok=True)
 
     def open_file_safely(self, file_path, event):
         try:

@@ -1,10 +1,13 @@
-
 from config import SESSION_NAME, DISCORD_WEBHOOK_URL
 import os
 from dotenv import load_dotenv
 import asyncio
-from services.discord_webhook import DiscordWebhook
+from services.discord_service import DiscordService
+from services.media_processor import MediaProcessor
+from services.message_handler import MessageHandler
 from services.telegram_service import TelegramService
+from services.user_service import UserService
+from utils.file_manager import FileManager
 from utils.user_interface import UserInterface
 
 load_dotenv()
@@ -12,10 +15,15 @@ load_dotenv()
 telegram_api_id = os.getenv('TELEGRAM_API_ID')
 telegram_api_hash = os.getenv('TELEGRAM_API_HASH')
 
-async def main():
 
-    discord_service = DiscordWebhook(DISCORD_WEBHOOK_URL)
-    telegram_service = TelegramService(int(telegram_api_id), telegram_api_hash, SESSION_NAME)
+async def main():
+    discord_service = DiscordService(DISCORD_WEBHOOK_URL)
+    file_manager = FileManager()
+    media_processor = MediaProcessor(file_manager)
+    user_service = UserService(file_manager)
+    message_handler = MessageHandler(media_processor, user_service)
+    telegram_service = TelegramService(int(telegram_api_id), telegram_api_hash, media_processor,
+                                       message_handler)
     user_interface = UserInterface()
     await telegram_service.authenticate()
 
@@ -39,7 +47,8 @@ async def main():
             group_choice = user_interface.get_group()
             group = await telegram_service.get_entity_group(group_choice)
             group_username = group.username if group.username else "Without username"
-            print(f"Starting mirroring of group with username at(@)\nName:{group.title}\nUserName:{group_username}\nId:{group.id}")
+            print(
+                f"Starting mirroring of group with username at(@)\nName:{group.title}\nUserName:{group_username}\nId:{group.id}")
             await telegram_service.mirror_group_messages(int(group.id), discord_service)
         elif choice == '0':
             user_interface.exit()
@@ -49,7 +58,7 @@ async def main():
 
 
 async def show_loading_indicator(task):
-    loading_symbols = ['.     ◐', '..    ◓', '...   ◑', '....  ◒', '...   ◐', '..    ◓', '.     ◑', '      ◒' ]
+    loading_symbols = ['.     ◐', '..    ◓', '...   ◑', '....  ◒', '...   ◐', '..    ◓', '.     ◑', '      ◒']
     idx = 0
     while not task.done():
         print(f"\rLoading groups{loading_symbols[idx % len(loading_symbols)]}", end="")
@@ -57,6 +66,6 @@ async def show_loading_indicator(task):
         await asyncio.sleep(0.3)
     print("\r" + "\n", end="\n")
 
+
 if __name__ == "__main__":
     asyncio.run(main())
-
