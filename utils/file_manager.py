@@ -12,7 +12,8 @@ class FileManager:
         self.base_folder = SAVE_FOLDER
         os.makedirs(SAVE_FOLDER, exist_ok=True)
 
-    def open_file_safely(self, file_path, event):
+    @staticmethod
+    def open_file_safely(file_path, event):
         try:
             return open(file_path, 'rb')
         except Exception as e:
@@ -28,7 +29,8 @@ class FileManager:
             finally:
                 self.delete_file(file_path, event)
 
-    def delete_file(self, file_path, event):
+    @staticmethod
+    def delete_file(file_path, event):
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)

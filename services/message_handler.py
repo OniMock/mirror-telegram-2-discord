@@ -30,7 +30,7 @@ class MessageHandler:
         if message_text:
             form_data_message.set_content(message_text)
         if event.message.reply_to_msg_id:
-            await self._handle_reply(client, form_data_message, embed, event)
+            await self._handle_reply(form_data_message, embed, event)
         if document_path:
             files['file'] = self.media_processor.file_manager.open_file_safely(document_path, event)
             form_data.add_field('files', files['file'], filename=os.path.basename(document_path))
@@ -41,7 +41,8 @@ class MessageHandler:
         finally:
             self.media_processor.file_manager.close_file_safely(files, document_path, event)
 
-    async def _handle_reply(self, client, form_data_message, embed, event):
+    @staticmethod
+    async def _handle_reply(form_data_message, embed, event):
         reply_message = await event.get_reply_message()
         if reply_message:
             reply_user = await reply_message.get_sender() or event.chat

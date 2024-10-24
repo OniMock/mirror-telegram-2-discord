@@ -24,6 +24,10 @@ class CheckString:
         if len(parts) >= 2 and parts[1].startswith('+'):
             return Identifier('link_invitation', group, None)
 
+        if len(parts) >= 2:
+            username = parts[1]
+            return Identifier('link_group', username, None)
+
         if re.match(r"^\d+$", group):
             group_id = int(group)
             return Identifier('id_group',int(f"-100{group_id}") if not str(group_id).startswith('100') else -group_id, None)

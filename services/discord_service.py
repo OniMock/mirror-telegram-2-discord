@@ -52,7 +52,8 @@ class DiscordService:
             logger.error(f'An error occurred while updating the avatar: {str(e)}')
             return False
 
-    async def _handle_response(self, response):
+    @staticmethod
+    async def _handle_response(response):
         if response.status in [204, 200]:
             logger.info('message sent successfully.')
             return True
