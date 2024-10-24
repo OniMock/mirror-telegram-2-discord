@@ -1,4 +1,4 @@
-from config import SESSION_NAME, DISCORD_WEBHOOK_URL
+from config import DISCORD_WEBHOOK_URL
 import os
 from dotenv import load_dotenv
 import asyncio
@@ -7,6 +7,7 @@ from services.media_processor import MediaProcessor
 from services.message_handler import MessageHandler
 from services.telegram_service import TelegramService
 from services.user_service import UserService
+from utils.check_string import CheckString
 from utils.file_manager import FileManager
 from utils.user_interface import UserInterface
 
@@ -45,11 +46,12 @@ async def main():
                 print("Invalid selection, please try again.")
         elif choice == '2':
             group_choice = user_interface.get_group()
-            group = await telegram_service.get_entity_group(group_choice)
+            group_choice = CheckString.check_string_group(group_choice)
+            group = await telegram_service.get_group(group_choice)
             group_username = group.username if group.username else "Without username"
             print(
-                f"Starting mirroring of group with username at(@)\nName:{group.title}\nUserName:{group_username}\nId:{group.id}")
-            await telegram_service.mirror_group_messages(int(group.id), discord_service)
+                f"Starting mirroring of group:\nName:{group.title}\nUserName:{group_username}\nId:{group.id}\nProp:{group_choice.prop}")
+            await telegram_service.mirror_group_messages(int(group.id), discord_service, group_choice.message_id)
         elif choice == '0':
             user_interface.exit()
             break

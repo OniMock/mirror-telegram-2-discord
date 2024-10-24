@@ -1,8 +1,10 @@
 import os
 import logging
 from telethon import TelegramClient, events
+from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.types import MessageMediaPoll
 from config import *
+from models.identifier import Identifier
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,21 +34,38 @@ class TelegramService:
                 groups.append(dialog)
         return groups
 
+    async def get_group(self, group: Identifier):
+        try:
+            if group.prop == 'link_invitation':
+                join_channel = await self.client(JoinChannelRequest(group.group_id))
+                return join_channel.chats[0]
+            return await self.client.get_entity(group.group_id)
+        except Exception as e:
+            logger.error(f"Error fetching entity group {group.prop}: {e}")
+            return None
+
     async def get_entity_group(self, group):
         try:
-            group_entity = await self.client.get_entity(group)
-            return group_entity
+            return await self.client.get_entity(group)
         except Exception as e:
             logger.error(f"Error fetching entity group: {e}")
             return None
 
-    async def mirror_group_messages(self, group_id, discord_service):
+    async def mirror_group_messages(self, group_id, discord_service, message_id=None):
         await self._ensure_save_directory_exists()
-        async with self.client:
+        async with (self.client):
             @self.client.on(events.NewMessage(chats=group_id))
             async def handler(event):
                 if not isinstance(event.message.media, MessageMediaPoll):
-                    await self.message_handler.handle_new_message(discord_service, self.client, event)
+                    reply_to = getattr(event.message, 'reply_to', None)
+                    reply_to_top_id = getattr(reply_to, 'reply_to_top_id', None)
+                    reply_to_msg_id = getattr(reply_to, 'reply_to_msg_id', None)
+
+                    if message_id:
+                        if reply_to and (reply_to_top_id == message_id or reply_to_msg_id == message_id):
+                            await self.message_handler.handle_new_message(discord_service, self.client, event)
+                    else:
+                        await self.message_handler.handle_new_message(discord_service, self.client, event)
 
             print(f"Mirroring messages from group {group_id}. Press Ctrl+C to stop.")
             await self.client.run_until_disconnected()

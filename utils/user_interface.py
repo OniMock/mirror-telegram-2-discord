@@ -16,7 +16,7 @@ class UserInterface:
         return int(input("Select a group to mirror (by number): ")) - 1
 
     def get_group(self):
-        return input("Enter the username at(@) or ID of the group you want to mirror: ")
+        return input("Enter the username at(@) or ID or link of the group you want to mirror: ")
 
     def exit(self):
         print("Exiting...")
