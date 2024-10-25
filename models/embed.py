@@ -38,5 +38,4 @@ class Embed:
             "footer": self.footer,
             "color": self.color,
         }
-        # Remove keys with value None
         return {k: v for k, v in embed_dict.items() if v is not None}

@@ -8,11 +8,29 @@ from models.user import get_username
 
 
 class MessageHandler:
+    """
+    Handles the processing of new messages, including text, media, and replies,
+    and prepares them for sending to Discord via webhooks.
+
+    Attributes:
+        media_processor: Processes and saves media content from messages.
+        user_service: Retrieves additional user information such as profile image.
+    """
+
     def __init__(self, media_processor, user_service):
         self.media_processor = media_processor
         self.user_service = user_service
 
     async def handle_new_message(self, discord_service, client, event):
+        """
+        Processes and formats a new Telegram message for Discord, adding text, media,
+        user profile image, and reply details.
+
+        Args:
+            discord_service: Service handling message sending to Discord.
+            client: Telethon client for accessing Telegram message details.
+            event: Telegram message event containing the message content and media.
+        """
         message_text = event.message.message
         user = await event.get_sender() or event.chat
         user_name = get_username(user)
@@ -43,6 +61,14 @@ class MessageHandler:
 
     @staticmethod
     async def _handle_reply(form_data_message, embed, event):
+        """
+        Adds reply information to the message, including reply text, user, and media details.
+
+        Args:
+            form_data_message: Content object representing the primary message data.
+            embed: Embed object for formatting the reply message in Discord.
+            event: Telegram message event used to access the reply message.
+        """
         reply_message = await event.get_reply_message()
         if reply_message:
             reply_user = await reply_message.get_sender() or event.chat

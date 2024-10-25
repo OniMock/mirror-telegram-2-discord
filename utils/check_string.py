@@ -6,6 +6,15 @@ from models.identifier import Identifier
 class CheckString:
     @staticmethod
     def check_string_group(group):
+        """
+        Checks the format of a given group identifier and returns an Identifier object.
+
+        Args:
+            group (str): The string representation of the group identifier.
+
+        Returns:
+            Identifier: An Identifier object representing the group.
+        """
         if group.startswith("https://"):
             group = group[8:]
         elif group.startswith("t.me/"):
@@ -30,11 +39,13 @@ class CheckString:
 
         if re.match(r"^\d+$", group):
             group_id = int(group)
-            return Identifier('id_group',int(f"-100{group_id}") if not str(group_id).startswith('100') else -group_id, None)
+            return Identifier('id_group', int(f"-100{group_id}") if not str(group_id).startswith('100') else -group_id,
+                              None)
 
         if re.match(r"^-?\d+$", group):
             group_id = int(group)
-            return Identifier('id_group', int(f"-100{abs(group_id)}") if not str(abs(group_id)).startswith('100') else group_id,
+            return Identifier('id_group',
+                              int(f"-100{abs(group_id)}") if not str(abs(group_id)).startswith('100') else group_id,
                               None)
 
         return Identifier('username_group', group, None)

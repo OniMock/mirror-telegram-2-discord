@@ -25,7 +25,6 @@ class UserInterface:
     def get_group_selection():
         return int(input("Select a group to mirror (by number): ")) - 1
 
-
     @staticmethod
     def get_subgroup_selection():
         return int(input("Select a SubGroup to mirror (by number): "))
@@ -37,19 +36,3 @@ class UserInterface:
     @staticmethod
     def exit():
         print("Exiting...")
-
-    @staticmethod
-    def display_invalid_choice():
-        print("Invalid choice, please try again.")
-
-    @staticmethod
-    def display_invalid_selection():
-        print("Invalid selection, please try again.")
-
-    @staticmethod
-    def display_invalid_subgroup(title):
-        print(f"Subgroup informed does not exist for the group: {title}")
-
-    def display_mirroring_info(self, group_title, group_username, group_id, group_prop, subgroup_name):
-        print(
-            f"Starting mirroring of group:\nName:{group_title}\nUserName:{group_username}\nId:{group_id}\nProp:{group_choice.prop}{subgroup_name}")

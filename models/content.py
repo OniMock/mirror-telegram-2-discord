@@ -31,7 +31,6 @@ class Content:
         if self.avatar_url:
             data["avatar_url"] = self.avatar_url
 
-        # Remove None values from the dictionary
         return {k: v for k, v in data.items() if v}
 
     def avatar_to_dict(self):
